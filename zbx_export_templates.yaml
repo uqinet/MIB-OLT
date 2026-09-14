@@ -1813,6 +1813,153 @@ zabbix_export:
             - type: DISCARD_UNCHANGED_HEARTBEAT
               parameters:
                 - 1h
+              - uuid: 7f6a4b1c2d3e4f5a8b9c0d1e2f3a4b5c
+          name: 'SFP optical DOM discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'walk[1.3.6.1.4.1.14988.1.1.19.1.1.2]'
+          key: sfp.optical.discovery
+          delay: 5m
+          description: |
+            MikroTik proprietary SFP optical DOM table.
+            Discovers SFP/SFP+ interfaces that expose optical diagnostics.
+            MIKROTIK-MIB table:
+            1.3.6.1.4.1.14988.1.1.19.1.1
+          item_prototypes:
+            - uuid: 8a7b6c5d4e3f2a1b9c8d7e6f5a4b3c2d
+              name: 'SFP {#SFPIFNAME}: Temperature'
+              type: SNMP_AGENT
+              snmp_oid: 'get[1.3.6.1.4.1.14988.1.1.19.1.1.6.{#SNMPINDEX}]'
+              key: 'sfp.temperature[{#SNMPINDEX}]'
+              value_type: FLOAT
+              units: °C
+              delay: 1m
+              tags:
+                - tag: component
+                  value: optical
+                - tag: component
+                  value: temperature
+              trigger_prototypes:
+                - uuid: 91a82b73c64d5e0f1a2b3c4d5e6f7a8b
+                  expression: 'avg(/MikroTik CRS326-24S2QRM by SNMP/sfp.temperature[{#SNMPINDEX}],5m)>={$SFP.TEMP.CRIT}'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'max(/MikroTik CRS326-24S2QRM by SNMP/sfp.temperature[{#SNMPINDEX}],5m)<{$SFP.TEMP.CRIT}-5'
+                  name: 'MikroTik: SFP {#SFPIFNAME}: High temperature'
+                  event_name: 'MikroTik: SFP {#SFPIFNAME}: High temperature ({ITEM.LASTVALUE1} °C)'
+                  priority: HIGH
+                  opdata: 'Temperature: {ITEM.LASTVALUE1} °C'
+                  tags:
+                    - tag: scope
+                      value: performance
+                - uuid: a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7
+                  expression: 'avg(/MikroTik CRS326-24S2QRM by SNMP/sfp.temperature[{#SNMPINDEX}],5m)>={$SFP.TEMP.WARN}'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'max(/MikroTik CRS326-24S2QRM by SNMP/sfp.temperature[{#SNMPINDEX}],5m)<{$SFP.TEMP.WARN}-5'
+                  name: 'MikroTik: SFP {#SFPIFNAME}: Temperature warning'
+                  event_name: 'MikroTik: SFP {#SFPIFNAME}: Temperature warning ({ITEM.LASTVALUE1} °C)'
+                  priority: WARNING
+                  opdata: 'Temperature: {ITEM.LASTVALUE1} °C'
+                  dependencies:
+                    - name: 'MikroTik: SFP {#SFPIFNAME}: High temperature'
+                      expression: 'avg(/MikroTik CRS326-24S2QRM by SNMP/sfp.temperature[{#SNMPINDEX}],5m)>={$SFP.TEMP.CRIT}'
+                  tags:
+                    - tag: scope
+                      value: performance
+
+            - uuid: b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8
+              name: 'SFP {#SFPIFNAME}: Supply voltage'
+              type: SNMP_AGENT
+              snmp_oid: 'get[1.3.6.1.4.1.14988.1.1.19.1.1.7.{#SNMPINDEX}]'
+              key: 'sfp.voltage[{#SNMPINDEX}]'
+              value_type: FLOAT
+              units: V
+              delay: 1m
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+              tags:
+                - tag: component
+                  value: optical
+
+            - uuid: c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9
+              name: 'SFP {#SFPIFNAME}: TX bias current'
+              type: SNMP_AGENT
+              snmp_oid: 'get[1.3.6.1.4.1.14988.1.1.19.1.1.8.{#SNMPINDEX}]'
+              key: 'sfp.tx.bias[{#SNMPINDEX}]'
+              value_type: FLOAT
+              units: mA
+              delay: 1m
+              tags:
+                - tag: component
+                  value: optical
+
+            - uuid: d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0
+              name: 'SFP {#SFPIFNAME}: TX optical power'
+              type: SNMP_AGENT
+              snmp_oid: 'get[1.3.6.1.4.1.14988.1.1.19.1.1.9.{#SNMPINDEX}]'
+              key: 'sfp.tx.power[{#SNMPINDEX}]'
+              value_type: FLOAT
+              units: dBm
+              delay: 1m
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+              tags:
+                - tag: component
+                  value: optical
+
+            - uuid: e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1
+              name: 'SFP {#SFPIFNAME}: RX optical power'
+              type: SNMP_AGENT
+              snmp_oid: 'get[1.3.6.1.4.1.14988.1.1.19.1.1.10.{#SNMPINDEX}]'
+              key: 'sfp.rx.power[{#SNMPINDEX}]'
+              value_type: FLOAT
+              units: dBm
+              delay: 1m
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+              tags:
+                - tag: component
+                  value: optical
+              trigger_prototypes:
+                - uuid: f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2
+                  expression: 'min(/MikroTik CRS326-24S2QRM by SNMP/sfp.rx.power[{#SNMPINDEX}],5m)<{$SFP.RX.CRIT}'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'max(/MikroTik CRS326-24S2QRM by SNMP/sfp.rx.power[{#SNMPINDEX}],5m)>={$SFP.RX.CRIT}+2'
+                  name: 'MikroTik: SFP {#SFPIFNAME}: RX optical power critical'
+                  event_name: 'MikroTik: SFP {#SFPIFNAME}: RX power too low ({ITEM.LASTVALUE1} dBm)'
+                  priority: HIGH
+                  opdata: 'RX Power: {ITEM.LASTVALUE1} dBm'
+                  tags:
+                    - tag: scope
+                      value: performance
+                - uuid: a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3
+                  expression: 'min(/MikroTik CRS326-24S2QRM by SNMP/sfp.rx.power[{#SNMPINDEX}],5m)<{$SFP.RX.WARN}'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'max(/MikroTik CRS326-24S2QRM by SNMP/sfp.rx.power[{#SNMPINDEX}],5m)>={$SFP.RX.WARN}+2'
+                  name: 'MikroTik: SFP {#SFPIFNAME}: RX optical power warning'
+                  event_name: 'MikroTik: SFP {#SFPIFNAME}: RX power low ({ITEM.LASTVALUE1} dBm)'
+                  priority: WARNING
+                  opdata: 'RX Power: {ITEM.LASTVALUE1} dBm'
+                  dependencies:
+                    - name: 'MikroTik: SFP {#SFPIFNAME}: RX optical power critical'
+                      expression: 'min(/MikroTik CRS326-24S2QRM by SNMP/sfp.rx.power[{#SNMPINDEX}],5m)<{$SFP.RX.CRIT}'
+                  tags:
+                    - tag: scope
+                      value: performance
+
+          preprocessing:
+            - type: SNMP_WALK_TO_JSON
+              parameters:
+                - '{#SFPIFNAME}'
+                - 1.3.6.1.4.1.14988.1.1.19.1.1.2
+                - '0'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1h  
       tags:
         - tag: class
           value: network
@@ -2025,6 +2172,21 @@ zabbix_export:
           value: '90'
         - macro: '{$VFS.FS.PUSED.MAX.WARN}'
           value: '80'
+                - macro: '{$SFP.RX.WARN}'
+          value: '-20'
+          description: 'Warning threshold for SFP RX optical power in dBm.'
+
+        - macro: '{$SFP.RX.CRIT}'
+          value: '-25'
+          description: 'Critical threshold for SFP RX optical power in dBm.'
+
+        - macro: '{$SFP.TEMP.WARN}'
+          value: '70'
+          description: 'Warning threshold for SFP temperature in Celsius.'
+
+        - macro: '{$SFP.TEMP.CRIT}'
+          value: '75'
+          description: 'Critical threshold for SFP temperature in Celsius.'
       dashboards:
         - uuid: f279c9f7496844678f427316cb383809
           name: 'Network interfaces'
